@@ -2,11 +2,12 @@ from pyspark.sql import SparkSession
 from pyspark.ml.clustering import KMeans
 from kneed import KneeLocator as ElbowLocator
 from pyspark.ml.feature import VectorAssembler
-from pyspark.sql.functions import col, udf
+from pyspark.sql.functions import col, udf, avg
 import matplotlib.pyplot as plt
-from pyspark.sql.types import DoubleType
+from pyspark.sql.types import DoubleType, FloatType
 from pathlib import Path
 from math import ceil, floor
+from re import sub
 
 '''
 Clusterizar latitude e longitude
@@ -17,17 +18,25 @@ spark = SparkSession.builder.master("local[1]").appName('LatLngClusterization').
 # input_path = (Path(__file__).parent.parent / 'input' / 'asdf.csv')
 # df = spark.read.csv(str(input_path), header=True, inferSchema=True)
 input_path = (Path(__file__).parent.parent / 'input' / 'asdf.csv')
+output_path='hdfs://localhost:9000//output/'
+
 df = spark.read.csv('hdfs://localhost:9000//input/asdf.csv', header=True, inferSchema=True)
 max_qty_of_clusters = 30
 seed = 1
 
-points = df.select(['latitude', 'longitude']) \
-    .withColumn("latitude",col("latitude").cast(DoubleType())) \
-    .withColumn("longitude",col("longitude").cast(DoubleType())) \
+def price_to_float(price):
+    return float(sub(r'[^\d.]', '', price))
 
+priceUDF = udf(lambda x: price_to_float(x), FloatType()) 
 
-vecAssembler = VectorAssembler(inputCols=["latitude", "longitude"], outputCol="features")
+points = df.select(['latitude', 'longitude', 'price']) \
+    .withColumn("lat",col("latitude").cast(DoubleType())) \
+    .withColumn("lng",col("longitude").cast(DoubleType())) \
+    .withColumn("price", priceUDF(col('price')))
+    
+vecAssembler = VectorAssembler(inputCols=["lat", "lng"], outputCol="features")
 points = vecAssembler.transform(points)
+
 
 def create_variance_curve(features):
     sum_of_squared_errors = []
@@ -59,12 +68,24 @@ def create_clusters(number_of_clusters: int, features, plot=False):
     prediction = model.transform(features)
     split1_udf = udf(lambda value: value[0].item(), DoubleType())
     split2_udf = udf(lambda value: value[1].item(), DoubleType())
-    return prediction.withColumn('lat', split1_udf('features')).withColumn('lng', split2_udf('features'))
+    return prediction.withColumn('lat', split1_udf('features')).withColumn('lng', split2_udf('features')).drop('features', 'latitude',  'longitude')
 
-points = points.select('features')
+def average_price_per_cluster(clusters):
+    return clusters.groupBy('prediction').agg(avg('price').alias("avg_price"))
+
 sum_of_squared_errors = create_variance_curve(points)
-plot_variance_curve(sum_of_squared_errors)
+# plot_variance_curve(sum_of_squared_errors)
 k_value = finding_best_k_value(sum_of_squared_errors)
-create_clusters(k_value, points)# 11
+clusters = create_clusters(11, points)
+avg_price = average_price_per_cluster(clusters)
+
+clusters.write.save(output_path + 'result.parquet', format='parquet', mode='append')
+avg_price.write.save(output_path + 'avg_price.parquet', format='parquet', mode='append')
+
+#QUERIES HIVE
+#create table localization_cluster (prediction int,  lat double, lng double) STORED AS PARQUET LOCATION 'hdfs://localhost:9000//output/result.parquet';
+#select * from localization_cluster limit 10;
+#create table clusterized_avg_price (prediction int,  avg_price double) STORED AS PARQUET LOCATION 'hdfs://localhost:9000//output/avg_price.parquet';
+#select * from clusterized_avg_price limit 10;
 
 spark.stop()
