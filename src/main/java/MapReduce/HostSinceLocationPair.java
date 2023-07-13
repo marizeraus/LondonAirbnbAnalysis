@@ -19,11 +19,10 @@ public class HostSinceLocationPair {
     private Text word = new Text();
 
     public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-      //Não entendi
       String line = value.toString();
       String[] columns = line.split("\t");
       
-      if (columns.length >= 2) {
+      if (!columns[0].equals("name")) {
         String col = columns[5];
         String col2 = columns[4];
         if(col.length() > 0  && col2.length() > 0 ){

@@ -22,7 +22,7 @@ public class HostLocation {
       String line = value.toString();
       String[] columns = line.split("\t");
       
-      if (columns.length >= 2) {
+      if (columns.length >= 2 && !columns[0].equals("name")) {
         String col = columns[5];
           word.set(col);
           if(col.length() > 0){
@@ -36,8 +36,12 @@ public class HostLocation {
 
     public void reduce(Text key, Iterable<IntWritable> values, Context context)
         throws IOException, InterruptedException {
-      context.write(key, new IntWritable(1));
-    }
+          int sum = 0;
+          for (IntWritable val : values) {
+            sum += val.get();
+          }
+          context.write(key, new IntWritable(sum));
+        }
   }
 
   public static void main(String[] args) throws Exception {

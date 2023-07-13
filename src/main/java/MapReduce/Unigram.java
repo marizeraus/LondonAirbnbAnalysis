@@ -22,10 +22,11 @@ public class Unigram {
       String line = value.toString();
       String[] columns = line.split("\t");
       
-      if (columns.length >= 2) {
+      if (!columns[0].equals("name")) {
         //Remove special characters and replace punctuations with space
         String colNoComma = columns[0].replaceAll("\\p{Punct}", " ");
         String col = colNoComma.replaceAll("[^a-zA-Z0-9 ]", "");
+        col.toLowerCase();
         StringTokenizer tokenizer = new StringTokenizer(col);
         while (tokenizer.hasMoreTokens()) {
           word.set(tokenizer.nextToken());
