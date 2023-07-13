@@ -26,7 +26,7 @@ public class Bigram {
         //Remove special characters and replace punctuations with space
         String colNoComma = columns[0].replaceAll("\\p{Punct}", " ");
         String col = colNoComma.replaceAll("[^a-zA-Z0-9 ]", "");
-        col.toLowerCase();
+        col = col.toLowerCase();
         StringTokenizer tokenizer = new StringTokenizer(col);
         String prevWord = null;
         while (tokenizer.hasMoreTokens()) {

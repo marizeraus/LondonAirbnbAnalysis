@@ -26,7 +26,7 @@ public class Unigram {
         //Remove special characters and replace punctuations with space
         String colNoComma = columns[0].replaceAll("\\p{Punct}", " ");
         String col = colNoComma.replaceAll("[^a-zA-Z0-9 ]", "");
-        col.toLowerCase();
+        col = col.toLowerCase();
         StringTokenizer tokenizer = new StringTokenizer(col);
         while (tokenizer.hasMoreTokens()) {
           word.set(tokenizer.nextToken());
