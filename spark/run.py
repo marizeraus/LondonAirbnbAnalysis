@@ -15,9 +15,8 @@ Clusterizar latitude e longitude
 spark = SparkSession.builder.master("local[1]").appName('LatLngClusterization').getOrCreate()
 
 # input_path = (Path(__file__).parent.parent / 'input' / 'London_Airbnb_Listings_March_2023.csv')
-# input_path = (Path(__file__).parent.parent / 'input' / 'asdf.csv')
 # df = spark.read.csv(str(input_path), header=True, inferSchema=True)
-input_path = (Path(__file__).parent.parent / 'input' / 'asdf.csv')
+input_path = (Path(__file__).parent.parent / 'input' / 'London_Airbnb_Listings_March_2023.csv')
 output_path='hdfs://localhost:9000//output/'
 
 df = spark.read.csv('hdfs://localhost:9000//input/asdf.csv', header=True, inferSchema=True)
@@ -34,7 +33,7 @@ points = df.select(['latitude', 'longitude', 'price']) \
     .withColumn("lng",col("longitude").cast(DoubleType())) \
     .withColumn("price", priceUDF(col('price')))
     
-vecAssembler = VectorAssembler(inputCols=["lat", "lng"], outputCol="features")
+vecAssembler = VectorAssembler(inputCols=["lat", "lng"], outputCol="features").setHandleInvalid("skip")
 points = vecAssembler.transform(points)
 
 
@@ -74,9 +73,9 @@ def average_price_per_cluster(clusters):
     return clusters.groupBy('prediction').agg(avg('price').alias("avg_price"))
 
 sum_of_squared_errors = create_variance_curve(points)
-# plot_variance_curve(sum_of_squared_errors)
+plot_variance_curve(sum_of_squared_errors)
 k_value = finding_best_k_value(sum_of_squared_errors)
-clusters = create_clusters(11, points)
+clusters = create_clusters(k_value, points)
 avg_price = average_price_per_cluster(clusters)
 
 clusters.write.save(output_path + 'result.parquet', format='parquet', mode='append')
