@@ -14,12 +14,9 @@ Clusterizar latitude e longitude
 '''
 spark = SparkSession.builder.master("local[1]").appName('LatLngClusterization').getOrCreate()
 
-# input_path = (Path(__file__).parent.parent / 'input' / 'London_Airbnb_Listings_March_2023.csv')
-# df = spark.read.csv(str(input_path), header=True, inferSchema=True)
-input_path = (Path(__file__).parent.parent / 'input' / 'London_Airbnb_Listings_March_2023.csv')
 output_path='hdfs://localhost:9000//output/'
 
-df = spark.read.csv('hdfs://localhost:9000//input/asdf.csv', header=True, inferSchema=True)
+df = spark.read.csv('hdfs://localhost:9000//input/London_Airbnb_Listings_March_2023.csv', header=True, inferSchema=True)
 max_qty_of_clusters = 30
 seed = 1
 
