@@ -1,16 +1,6 @@
 from pyspark.sql import SparkSession, Row
-from pyspark.ml.feature import NGram
 from pathlib import Path
 import re
-'''
-1- Pegar nomes de airbnbs mais comuns - unigrama e bigrama
-2- Distinct host locations
-3- host locations que possuem host_since mais antigos
-4- Clusterizar latitude e longitude
-5- Entender a razão entre aceitação e preço
-6- Tentar clusterizar o property type para saber quais tem o "mesmo significado" e entender a relação com a localização
-7- Entender o perfil do cliente que não aceita a taxa de aceitação
-'''
 
 spark = SparkSession.builder.master("local[1]").appName('Ngrams').getOrCreate()
 input_path = (Path(__file__).parent.parent / 'input' / 'London_Airbnb_Listings_March_2023.csv')
@@ -24,9 +14,9 @@ def word_pairs(line):
         words = line.split()
         result = []
         for a, b in zip(words, words[1:]):
-            a = re.sub(r'[^a-zA-Z]', '', a)
-            b = re.sub(r'[^a-zA-Z]', '', b)
-            bigram = f'{a} {b}'.strip()
+            a = re.sub(r'[^a-zA-Z0-9]', '', a)
+            b = re.sub(r'[^a-zA-Z0-9]', '', b)
+            bigram = (f'{a} {b}'.strip().lower())
             if len(bigram.split()) > 1:
                 result.append(bigram)
         return result
