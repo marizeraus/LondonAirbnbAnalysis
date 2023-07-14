@@ -78,8 +78,8 @@ k_value = finding_best_k_value(sum_of_squared_errors)
 clusters = create_clusters(k_value, points)
 avg_price = average_price_per_cluster(clusters)
 
-clusters.write.save(output_path + 'result.parquet', format='parquet', mode='append')
-avg_price.write.save(output_path + 'avg_price.parquet', format='parquet', mode='append')
+clusters.write.save(output_path + 'result.parquet', format='parquet', mode='overwrite')
+avg_price.write.save(output_path + 'avg_price.parquet', format='parquet', mode='overwrite')
 
 #QUERIES HIVE
 #create table localization_cluster (prediction int,  lat double, lng double) STORED AS PARQUET LOCATION 'hdfs://localhost:9000//output/result.parquet';
