@@ -12,3 +12,10 @@ select * from unigram order by count desc limit 15;
 
 -- Para analisar os host_locations mais antigos
 select host_location, min(host_since) as min_host_since from host_loc_since group by host_location order by min(host_since) asc limit 5;
+
+
+-- Para analisar a quantidade de locais por cluster
+select prediction, count(*) from localization_cluster group by prediction;
+
+-- Para analisar o preço dos clusters
+select * from clusterized_avg_price order by prediction;
