@@ -16,7 +16,7 @@ def word_pairs(line):
         for a, b in zip(words, words[1:]):
             a = re.sub(r'[^a-zA-Z0-9]', '', a)
             b = re.sub(r'[^a-zA-Z0-9]', '', b)
-            bigram = f'{a} {b}'.strip()
+            bigram = (f'{a} {b}'.strip().lower())
             if len(bigram.split()) > 1:
                 result.append(bigram)
         return result
