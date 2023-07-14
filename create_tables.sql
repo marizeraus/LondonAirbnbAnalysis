@@ -1,6 +1,6 @@
 create table host_location (location String, count Integer) ROW FORMAT DELIMITED FIELDS TERMINATED BY "\t";
 
-LOAD DATA INPATH 'hdfs://localhost:{port}//output/host_location/ part-r-00000' INTO TABLE host_location;
+LOAD DATA INPATH 'hdfs://localhost:{port}//output/host_location/part-r-00000' INTO TABLE host_location;
 
 create table bigram (bigram String, count Integer) ROW FORMAT DELIMITED FIELDS TERMINATED BY "\t";
 
